@@ -6,11 +6,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import io.hhplus.tdd.database.PointHistoryTable;
+import io.hhplus.tdd.database.UserPointTable;
+
 @RestController
 @RequestMapping("/point")
 public class PointController {
 
     private static final Logger log = LoggerFactory.getLogger(PointController.class);
+    private final PointHistoryTable pointHistoryTable;
+    private final UserPointTable userPointTable;
+
+    public PointController(PointHistoryTable pointHistoryTable, UserPointTable userPointTable) {
+        this.pointHistoryTable = pointHistoryTable;
+        this.userPointTable = userPointTable;
+    }
 
     /**
      * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
@@ -19,7 +29,7 @@ public class PointController {
     public UserPoint point(
             @PathVariable long id
     ) {
-        return new UserPoint(0, 0, 0);
+        return userPointTable.selectById(id);
     }
 
     /**
@@ -29,7 +39,7 @@ public class PointController {
     public List<PointHistory> history(
             @PathVariable long id
     ) {
-        return List.of();
+        return pointHistoryTable.selectAllByUserId(id);
     }
 
     /**
@@ -40,7 +50,13 @@ public class PointController {
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        return new UserPoint(0, 0, 0);
+        UserPoint currentPoint = userPointTable.selectById(id); // 현재 유저의 포인트 조회
+
+        pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis()); // 포인트 기록 생성
+
+        long newAmount = currentPoint.point() + amount; // 업데이트된 포인트 양
+
+        return userPointTable.insertOrUpdate(id, newAmount);// 포인트 업데이트 및 반환
     }
 
     /**
@@ -51,6 +67,25 @@ public class PointController {
             @PathVariable long id,
             @RequestBody long amount
     ) {
-        return new UserPoint(0, 0, 0);
+        // 계산 금액 검증
+        if (amount <= 0) {
+            throw new IllegalArgumentException("계산 금액은 0원 초과이어야 합니다.");
+        }
+
+        UserPoint currentPoint = userPointTable.selectById(id);
+
+        // 잔액 조회
+        if (currentPoint.point() < amount) {
+            throw new IllegalArgumentException("현재 잔액이 부족합니다.");
+        }
+
+        // 포인트 사용 기록(USE)
+        pointHistoryTable.insert(id, amount, TransactionType.USE, System.currentTimeMillis());
+
+        // 잔액 차감
+        long newAmount = currentPoint.point() - amount;
+
+        // 사용자 포인트 업데이트 및 반환
+        return userPointTable.insertOrUpdate(id, newAmount);
     }
 }
