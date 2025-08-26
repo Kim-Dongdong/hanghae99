@@ -203,4 +203,6 @@ public class PointControllerTest {
 		// userPointTable, pointHistoryTable 이외의 상호작용 X
 		verifyNoMoreInteractions(userPointTable, pointHistoryTable);
 	}
+
+
 }
