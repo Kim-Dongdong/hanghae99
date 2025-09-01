@@ -11,3 +11,6 @@
 ```bash
 docker-compose up -d
 ```
+
+## 서버 설계 과제
+https://www.notion.so/2-234b5b622f3b80e3993cc8b757cfd506?source=copy_link
