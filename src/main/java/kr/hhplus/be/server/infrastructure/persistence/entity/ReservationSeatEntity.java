@@ -24,6 +24,6 @@ public class ReservationSeatEntity {
 	@Column(name = "seat_no", nullable = false)
 	public Integer seatNo;
 
-	protected ReservationSeatEntity() {}
+	public ReservationSeatEntity() {}
 	public ReservationSeatEntity(Integer seatNo) { this.seatNo = seatNo; }
 }

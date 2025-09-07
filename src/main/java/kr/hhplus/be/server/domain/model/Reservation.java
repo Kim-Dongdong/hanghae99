@@ -81,7 +81,5 @@ public class Reservation {
 	public LocalDateTime getExpiresAt() { return expiresAt; }
 	public Money getPayableAmount() { return payableAmount; }
 	public LocalDateTime getCreatedAt() { return createdAt; }
-
-	// 인프라에서만 식별자 역주입
-	void assignId(Long id) { this.reservationId = id; }
+	public void assignId(Long id) { this.reservationId = id; }
 }

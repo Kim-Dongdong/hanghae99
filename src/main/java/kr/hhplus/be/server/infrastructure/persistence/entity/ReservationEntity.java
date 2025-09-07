@@ -48,6 +48,6 @@ public class ReservationEntity {
 	@OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
 	public List<ReservationSeatEntity> seats = new ArrayList<>();
 
-	protected ReservationEntity() {}
+	public ReservationEntity() {}
 }
 

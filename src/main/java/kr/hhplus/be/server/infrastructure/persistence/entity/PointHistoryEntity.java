@@ -47,5 +47,5 @@ public class PointHistoryEntity {
 	@Column(name = "created_at", nullable = false)
 	public LocalDateTime createdAt;
 
-	protected PointHistoryEntity() {}
+	public PointHistoryEntity() {}
 }

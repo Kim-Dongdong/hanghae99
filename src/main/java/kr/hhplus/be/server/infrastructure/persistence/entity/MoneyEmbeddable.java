@@ -4,7 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-class MoneyEmbeddable {
+public class MoneyEmbeddable {
 	@Column(name="amount_krw", nullable=false)
 	public long amount;
 

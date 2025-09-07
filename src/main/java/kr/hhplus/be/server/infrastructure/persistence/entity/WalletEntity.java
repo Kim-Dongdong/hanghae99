@@ -25,5 +25,5 @@ public class WalletEntity {
 	@Column(name = "updated_at")
 	public LocalDateTime updatedAt;
 
-	protected WalletEntity() {}
+	public WalletEntity() {}
 }

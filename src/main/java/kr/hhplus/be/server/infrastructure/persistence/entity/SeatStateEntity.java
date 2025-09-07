@@ -41,6 +41,6 @@ public class SeatStateEntity {
 	@Version
 	public Long version;
 
-	protected SeatStateEntity() {
+	public SeatStateEntity() {
 	}
 }
