@@ -20,18 +20,21 @@ public class ReservationJpaAdapter implements ReservationRepository {
 
 	public ReservationJpaAdapter(SpringReservationJpa jpa) { this.jpa = jpa; }
 
+	/** reservationId로 특정 예약 조회 **/
 	@Override
 	@Transactional(readOnly = true)
 	public Optional<Reservation> findById(Long reservationId) {
 		return jpa.findById(reservationId).map(this::toDomain);
 	}
 
+	/** 수정을 위해 reservationId로 특정 예약 정보를 조회 **/
 	@Override
 	@Transactional
 	public Optional<Reservation> findByIdForUpdate(Long reservationId) {
 		return jpa.findByIdForUpdate(reservationId).map(this::toDomain);
 	}
 
+	/** 저장 **/
 	@Override
 	@Transactional
 	public Reservation save(Reservation reservation) {
@@ -42,7 +45,7 @@ public class ReservationJpaAdapter implements ReservationRepository {
 		return toDomain(saved);
 	}
 
-	// ===== mapping =====
+	// ===== 매핑 =====
 	private ReservationEntity toEntity(Reservation d) {
 		ReservationEntity e = new ReservationEntity();
 		e.id = d.getReservationId();

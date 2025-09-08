@@ -24,6 +24,7 @@ public class WalletJpaAdapter implements WalletRepository {
 		this.historyJpa = historyJpa;
 	}
 
+	/** 특정 사용자의 지갑 정보를 수정하기 위해 조회 **/
 	@Override
 	@Transactional
 	public PointWallet findByUserIdForUpdate(Long userId) {
@@ -38,26 +39,26 @@ public class WalletJpaAdapter implements WalletRepository {
 		return PointWallet.rehydrate(e.userId, Money.of(e.balance.amount));
 	}
 
+	/** 저장 **/
 	@Override
 	@Transactional
 	public void save(PointWallet wallet) {
 		WalletEntity e = walletJpa.findById(wallet.getUserId())
-			.orElseGet(() -> {
-				WalletEntity ne = new WalletEntity();
-				ne.userId = wallet.getUserId();
-				return ne;
-			});
+			.orElseThrow(() -> new RuntimeException("Wallet not found"));
 		e.balance = new MoneyEmbeddable(wallet.getBalance().asLong());
 		e.updatedAt = LocalDateTime.now();
 		walletJpa.save(e);
 	}
 
+	/**  특정 요청이 이미 처리되었는지 확인,
+	 * 주어진 userId와 requestId를 가진 포인트 기록(PointHistoryEntity)이 데이터베이스에 존재하는지 확인**/
 	@Override
 	@Transactional(readOnly = true)
 	public boolean hasProcessed(Long userId, String requestId) {
 		return historyJpa.existsByUserIdAndRequestId(userId, requestId);
 	}
 
+	/** 포인트 거래 기록 저장 **/
 	// 기록 메서드
 	@Transactional
 	public void recordHistory(Long userId, String type, Money amount, Money balanceAfter, String requestId, String paymentId) {

@@ -19,16 +19,16 @@ public class SeatInventoryJpaAdapter implements SeatInventoryPort {
 		this.seatJpa = seatJpa;
 	}
 
+	/** 특정 좌석 HOLD **/
 	@Override
 	@Transactional
 	public boolean tryHold(Long scheduleId, Integer seatNo, long ttlSeconds) {
 
-		// 활성행 1개 유지 모델: 존재하면 상태/만료 갱신 시도, 없으면 insert
 		LocalDateTime expires = LocalDateTime.now().plusSeconds(ttlSeconds);
 		return seatJpa.findByShowIdAndSeatNo(scheduleId, seatNo).map(e -> {
 			if ("CONFIRMED".equals(e.status)) return false;
 
-			// 이미 상태가 HELD인데 만료 전이면 경합 실패
+			// 이미 상태가 HELD인데 만료 전이면 실패
 			if ("HELD".equals(e.status) && e.expiresAt != null && e.expiresAt.isAfter(LocalDateTime.now()))
 				return false;
 			e.status = "HELD";
@@ -50,6 +50,7 @@ public class SeatInventoryJpaAdapter implements SeatInventoryPort {
 		});
 	}
 
+	/**  임시 점유(HELD) 상태의 좌석을 최종 결제 완료(CONFIRMED) 상태로 변경 **/
 	@Override
 	@Transactional
 	public boolean markConfirmed(Long scheduleId, Integer seatNo) {

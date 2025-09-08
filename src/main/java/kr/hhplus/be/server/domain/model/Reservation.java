@@ -62,7 +62,7 @@ public class Reservation {
 		if (!Objects.equals(this.userId, callerUserId)) throw new NotOwnerException(callerUserId);
 	}
 
-	// ===== 도메인 재조립 팩토리(인프라에서 사용) =====
+	// 데이터베이스에서 조회한 id, status, createdAt 등 이미 확정된 데이터를 기반으로 객체를 생성
 	public static Reservation rehydrate(Long id, Long userId, Long showId, List<Integer> seats,
 		Status status, LocalDateTime expiresAt, Money amount,
 		LocalDateTime createdAt) {

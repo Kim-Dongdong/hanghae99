@@ -27,6 +27,7 @@ public class ConcertQueryJpaAdapter implements ConcertQueryPort {
 		this.seatStateJpa = seatStateJpa;
 	}
 
+	/** 모든 콘서트 목록을 조회 **/
 	@Override
 	public List<ConcertDto> listConcerts() {
 		return showJpa.findAll().stream()
@@ -34,6 +35,7 @@ public class ConcertQueryJpaAdapter implements ConcertQueryPort {
 			.toList();
 	}
 
+	/** 해당 콘서트의 공연 일정(스케줄) 조회 **/
 	@Override
 	public List<ScheduleDto> listSchedules(Long concertId) {
 		return showJpa.findById(concertId)
@@ -46,6 +48,7 @@ public class ConcertQueryJpaAdapter implements ConcertQueryPort {
 			.orElse(List.of());
 	}
 
+	/** 해당 스케줄 공연의 예약 가능한 좌석 조회 **/
 	@Override
 	public List<SeatDto> listAvailableSeats(Long scheduleId) {
 		// scheduleId == showId 가정
