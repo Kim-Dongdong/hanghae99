@@ -3,6 +3,7 @@ package kr.hhplus.be.server.application.usecase;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import kr.hhplus.be.server.domain.model.Money;
@@ -20,7 +21,7 @@ public class HoldSeatUseCase {
 
 	public HoldSeatUseCase(SeatInventoryPort seatInventory,
 		ReservationRepository reservationRepository,
-		long holdTtlSeconds) {
+		@Value("${reservation.hold-ttl-seconds:120}") long holdTtlSeconds) {
 		this.seatInventory = seatInventory;
 		this.reservationRepository = reservationRepository;
 		this.holdTtlSeconds = holdTtlSeconds;

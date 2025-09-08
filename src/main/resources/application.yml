@@ -21,6 +21,10 @@ spring:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
 
+# === 커스텀 설정 (spring.* 바깥 최상단) ===
+reservation:
+  hold-ttl-seconds: 120
+
 ---
 spring.config.activate.on-profile: local, test
 
