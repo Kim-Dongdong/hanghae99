@@ -14,26 +14,29 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import kr.hhplus.be.server.application.usecase.ConfirmReservationUseCase;
-import kr.hhplus.be.server.application.usecase.HoldSeatUseCase;
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.PointWallet;
 import kr.hhplus.be.server.domain.model.Reservation;
 import kr.hhplus.be.server.domain.model.exceptions.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.model.exceptions.ReservationExpiredException;
-import kr.hhplus.be.server.domain.port.ReservationRepository;
+import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
-import kr.hhplus.be.server.domain.port.WalletRepository;
+import kr.hhplus.be.server.domain.port.WalletPort;
+import kr.hhplus.be.server.infrastructure.persistence.entity.ShowSeatEntity;
+import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowSeatJpa;
 
 /** 예약 확정 유스케이스 단위 테스트 **/
 @ExtendWith(MockitoExtension.class)
 public class ConfirmReservationUseCaseTest {
 
 	@Mock
-	ReservationRepository reservationRepository;
+	ReservationPort reservationPort;
 	@Mock
-	WalletRepository walletRepository;
+	WalletPort walletPort;
 	@Mock
 	SeatInventoryPort seatInventory;
+	@Mock
+	SpringShowSeatJpa showSeatJpa;
 
 	private Reservation heldReservation(Long userId, Long showId, List<Integer> seats,
 		Money price, LocalDateTime expiresAt) {
@@ -54,7 +57,7 @@ public class ConfirmReservationUseCaseTest {
 	@DisplayName("예약 확정 성공 시: 지갑 차감 + 좌석 확정 + 상태 CONFIRMED")
 	void confirm_success() {
 		// given
-		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationRepository, walletRepository, seatInventory);
+		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationPort, walletPort, seatInventory, showSeatJpa);
 
 		Long reservationId = 1L;
 		Long userId = 11L;
@@ -67,9 +70,9 @@ public class ConfirmReservationUseCaseTest {
 		Reservation res = heldReservation(userId, showId, seats, price, expiresAt);
 
 		// 예약 이력 조회 정의
-		when(reservationRepository.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
+		when(reservationPort.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
 		// 결제 정보 조회 정의
-		when(walletRepository.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(50000)));
+		when(walletPort.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(50000)));
 		// 좌석 5번 확정 처리 정의
 		when(seatInventory.markConfirmed(showId, 5)).thenReturn(true);
 
@@ -83,19 +86,19 @@ public class ConfirmReservationUseCaseTest {
 		assertEquals(Reservation.Status.CONFIRMED, res.getStatus());
 
 		// 호출 검증
-		verify(reservationRepository).findByIdForUpdate(reservationId);
-		verify(walletRepository).findByUserIdForUpdate(userId);
+		verify(reservationPort).findByIdForUpdate(reservationId);
+		verify(walletPort).findByUserIdForUpdate(userId);
 		verify(seatInventory).markConfirmed(showId, 5);
-		verify(reservationRepository).save(res);
-		verify(walletRepository).save(any(PointWallet.class));
-		verifyNoMoreInteractions(reservationRepository, walletRepository, seatInventory);
+		verify(reservationPort).save(res);
+		verify(walletPort).save(any(PointWallet.class));
+		verifyNoMoreInteractions(reservationPort, walletPort, seatInventory);
 	}
 
 	@Test
 	@DisplayName("만료된 예약은 확정 불가")
 	void confirm_expired() {
 		// given
-		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationRepository, walletRepository, seatInventory);
+		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationPort, walletPort, seatInventory, showSeatJpa);
 
 		Long reservationId = 1L;
 		Long userId = 11L;
@@ -103,8 +106,8 @@ public class ConfirmReservationUseCaseTest {
 		Reservation res = heldReservation(userId, showId, List.of(5),
 			Money.of(15000), LocalDateTime.now().minusSeconds(1)); // 1초 지정
 
-		when(reservationRepository.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
-		when(walletRepository.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(50000)));
+		when(reservationPort.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
+		when(walletPort.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(50000)));
 		when(seatInventory.markConfirmed(any(), anyInt())).thenReturn(true);
 
 		// when & then
@@ -112,23 +115,23 @@ public class ConfirmReservationUseCaseTest {
 		assertThrows(ReservationExpiredException.class,
 			() -> sut.handle(reservationId, userId, Money.of(15000), "idem-001"));
 
-		verify(reservationRepository).findByIdForUpdate(reservationId);
-		verify(walletRepository).findByUserIdForUpdate(userId);
-		verifyNoMoreInteractions(reservationRepository, walletRepository, seatInventory);
+		verify(reservationPort).findByIdForUpdate(reservationId);
+		verify(walletPort).findByUserIdForUpdate(userId);
+		verifyNoMoreInteractions(reservationPort, walletPort, seatInventory);
 	}
 
 	@Test
 	@DisplayName("지갑 잔액 부족 시 확정 불가")
 	void confirm_insufficientBalance() {
-		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationRepository, walletRepository, seatInventory);
+		ConfirmReservationUseCase sut = new ConfirmReservationUseCase(reservationPort, walletPort, seatInventory, showSeatJpa);
 
 		Long reservationId = 1L;
 		Long userId = 11L;
 		Long showId = 101L;
 		Reservation res = heldReservation(userId, showId, List.of(5), Money.of(15000), LocalDateTime.now().plusMinutes(1));
 
-		when(reservationRepository.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
-		when(walletRepository.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(10000)));
+		when(reservationPort.findByIdForUpdate(reservationId)).thenReturn(Optional.of(res));
+		when(walletPort.findByUserIdForUpdate(userId)).thenReturn(new PointWallet(userId, Money.of(10000)));
 
 		assertThrows(InsufficientBalanceException.class,
 			() -> sut.handle(reservationId, userId, Money.of(15000), "idem-001"));

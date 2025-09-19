@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.infrastructure.persistence.adapter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,14 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.Reservation;
-import kr.hhplus.be.server.domain.port.ReservationRepository;
+import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.infrastructure.persistence.entity.MoneyEmbeddable;
 import kr.hhplus.be.server.infrastructure.persistence.entity.ReservationEntity;
 import kr.hhplus.be.server.infrastructure.persistence.entity.ReservationSeatEntity;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringReservationJpa;
 
 @Component
-public class ReservationJpaAdapter implements ReservationRepository {
+public class ReservationJpaAdapter implements ReservationPort {
 	private final SpringReservationJpa jpa;
 
 	public ReservationJpaAdapter(SpringReservationJpa jpa) { this.jpa = jpa; }
@@ -73,5 +74,10 @@ public class ReservationJpaAdapter implements ReservationRepository {
 			Money.of(e.payableAmount.amount),
 			e.createdAt
 		);
+	}
+
+	@Override
+	public boolean existsByUserIdAndShowIdAndExpiresAtBefore(long userId, long showId, LocalDateTime now) {
+		return jpa.existsByUserIdAndShowIdAndExpiresAtBefore(userId, showId, now);
 	}
 }

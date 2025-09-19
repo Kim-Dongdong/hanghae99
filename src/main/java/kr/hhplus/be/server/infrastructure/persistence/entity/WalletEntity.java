@@ -14,7 +14,7 @@ import jakarta.persistence.Version;
 public class WalletEntity {
 	@Id
 	@Column(name = "user_id")
-	public Long userId;
+	public Long id;
 
 	@Embedded
 	public MoneyEmbeddable balance;

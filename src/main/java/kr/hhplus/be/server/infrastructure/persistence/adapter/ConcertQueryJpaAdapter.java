@@ -83,7 +83,7 @@ public class ConcertQueryJpaAdapter implements ConcertQueryPort {
 	// ===== 매핑 =====
 	private ConcertDto toConcertDto(ShowEntity s) {
 		return new ConcertDto(
-			s.showId,  // 포트가 Long을 요구하므로 변환
+			s.id,  // 포트가 Long을 요구하므로 변환
 			s.title,
 			s.venue
 		);

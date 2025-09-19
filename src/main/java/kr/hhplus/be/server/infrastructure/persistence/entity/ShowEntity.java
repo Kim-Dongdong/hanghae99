@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 public class ShowEntity {
 	@Id
 	@Column(name = "show_id")
-	public Long showId;
+	public Long id;
 
 	public String title;
 	public LocalDateTime startsAt;
@@ -26,5 +26,5 @@ public class ShowEntity {
 	public Integer holdMinutes;
 	public String timezone;
 
-	protected ShowEntity() {}
+	public ShowEntity() {}
 }

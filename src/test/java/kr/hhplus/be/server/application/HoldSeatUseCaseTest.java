@@ -16,7 +16,7 @@ import kr.hhplus.be.server.application.usecase.HoldSeatUseCase;
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.Reservation;
 import kr.hhplus.be.server.domain.model.exceptions.SeatAlreadyHeldException;
-import kr.hhplus.be.server.domain.port.ReservationRepository;
+import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
 
 /** 좌석 홀드 유스케이스 단위 테스트 **/
@@ -26,14 +26,14 @@ public class HoldSeatUseCaseTest {
 	@Mock
 	SeatInventoryPort seatInventory;
 	@Mock
-	ReservationRepository reservationRepository;
+	ReservationPort reservationPort;
 
 	@Test
 	@DisplayName("좌석 홀드 성공 시 Reserviation 저장 및 결과 반환")
 	public void hold_success() {
 		// given
 		long ttlSeconds = 120;
-		HoldSeatUseCase sut = new HoldSeatUseCase(seatInventory, reservationRepository, ttlSeconds);
+		HoldSeatUseCase sut = new HoldSeatUseCase(seatInventory, reservationPort, ttlSeconds);
 
 		Long userId = 10L;
 		Long scheduleId = 100L;
@@ -47,7 +47,7 @@ public class HoldSeatUseCaseTest {
 		// ArgumentCaptor를 사용해 reservationRepository.save() 메서드가 호출될 때
 		// 전달되는 Reservation 객체를 캡처, cap 객체를 save해서 검증하는 느낌
 		ArgumentCaptor<Reservation> cap = ArgumentCaptor.forClass(Reservation.class);
-		when(reservationRepository.save(cap.capture()))
+		when(reservationPort.save(cap.capture()))
 			// thenAnswer를 사용해 save 메서드 호출 시, 데이터베이스에 저장된 후 ID가 부여된 상황을 시뮬레이션
 			.thenAnswer(inv -> {
 				// 저장을 가정: reservationId를 부여한 도메인 객체 반환
@@ -70,8 +70,8 @@ public class HoldSeatUseCaseTest {
 		// 호출되었는지 확인
 		verify(seatInventory).tryHold(scheduleId, seatNo, ttlSeconds);
 		verify(seatInventory).seatPriceOf(scheduleId, seatNo);
-		verify(reservationRepository).save(any());
-		verifyNoMoreInteractions(seatInventory, reservationRepository);
+		verify(reservationPort).save(any());
+		verifyNoMoreInteractions(seatInventory, reservationPort);
 	}
 
 	@Test
@@ -79,7 +79,7 @@ public class HoldSeatUseCaseTest {
 	public void hold_conflict() {
 		// given
 		long ttlSeconds = 60;
-		HoldSeatUseCase sut = new HoldSeatUseCase(seatInventory, reservationRepository, ttlSeconds);
+		HoldSeatUseCase sut = new HoldSeatUseCase(seatInventory, reservationPort, ttlSeconds);
 
 		Long userId = 10L;
 		Long scheduleId = 100L;
@@ -93,6 +93,6 @@ public class HoldSeatUseCaseTest {
 
 		// price 조회/저장은 시도 안 함
 		verify(seatInventory).tryHold(scheduleId, seatNo, ttlSeconds);
-		verifyNoMoreInteractions(seatInventory, reservationRepository);
+		verifyNoMoreInteractions(seatInventory, reservationPort);
 	}
 }

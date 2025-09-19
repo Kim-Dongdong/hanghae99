@@ -1,9 +1,14 @@
 package kr.hhplus.be.server.domain.port;
 
-import kr.hhplus.be.server.domain.model.PointWallet;
+import java.util.Optional;
 
-public interface WalletRepository {
+import kr.hhplus.be.server.domain.model.PointWallet;
+import kr.hhplus.be.server.infrastructure.persistence.entity.WalletEntity;
+
+public interface WalletPort {
 	PointWallet findByUserIdForUpdate(Long userId);
 	void save(PointWallet wallet);
 	boolean hasProcessed(Long userId, String requestId);
+
+	Optional<WalletEntity> findById(long userId);
 }

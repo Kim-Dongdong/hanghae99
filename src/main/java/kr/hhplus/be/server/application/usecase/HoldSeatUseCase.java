@@ -9,21 +9,21 @@ import org.springframework.stereotype.Service;
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.Reservation;
 import kr.hhplus.be.server.domain.model.exceptions.SeatAlreadyHeldException;
-import kr.hhplus.be.server.domain.port.ReservationRepository;
+import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
 
 @Service
 public class HoldSeatUseCase {
 
 	private final SeatInventoryPort seatInventory;
-	private final ReservationRepository reservationRepository;
+	private final ReservationPort reservationPort;
 	private final long holdTtlSeconds;
 
 	public HoldSeatUseCase(SeatInventoryPort seatInventory,
-		ReservationRepository reservationRepository,
+		ReservationPort reservationPort,
 		@Value("${reservation.hold-ttl-seconds:120}") long holdTtlSeconds) {
 		this.seatInventory = seatInventory;
-		this.reservationRepository = reservationRepository;
+		this.reservationPort = reservationPort;
 		this.holdTtlSeconds = holdTtlSeconds;
 	}
 
@@ -39,7 +39,7 @@ public class HoldSeatUseCase {
 
 		// Reservation.hold로 HOLD 상태의 새로운 예약 도메인 객체를 생성
 		Reservation res = Reservation.hold(userId, scheduleId, List.of(seatNo), expiresAt, price);
-		Reservation saved = reservationRepository.save(res); // db 저장
+		Reservation saved = reservationPort.save(res); // db 저장
 		return new Result(saved.getReservationId(), expiresAt, price);
 	}
 

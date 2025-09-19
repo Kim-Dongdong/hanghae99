@@ -1,13 +1,14 @@
 package kr.hhplus.be.server.infrastructure.persistence.adapter;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.PointWallet;
-import kr.hhplus.be.server.domain.port.WalletRepository;
+import kr.hhplus.be.server.domain.port.WalletPort;
 import kr.hhplus.be.server.infrastructure.persistence.entity.MoneyEmbeddable;
 import kr.hhplus.be.server.infrastructure.persistence.entity.PointHistoryEntity;
 import kr.hhplus.be.server.infrastructure.persistence.entity.WalletEntity;
@@ -15,7 +16,7 @@ import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringPointHist
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringWalletJpa;
 
 @Component
-public class WalletJpaAdapter implements WalletRepository {
+public class WalletJpaAdapter implements WalletPort {
 	private final SpringWalletJpa walletJpa;
 	private final SpringPointHistoryJpa historyJpa;
 
@@ -31,12 +32,12 @@ public class WalletJpaAdapter implements WalletRepository {
 		WalletEntity e = walletJpa.findByUserIdForUpdate(userId)
 			.orElseGet(() -> {
 				WalletEntity ne = new WalletEntity();
-				ne.userId = userId;
+				ne.id = userId;
 				ne.balance = new MoneyEmbeddable(0);
 				ne.updatedAt = LocalDateTime.now();
 				return walletJpa.save(ne);
 			});
-		return PointWallet.rehydrate(e.userId, Money.of(e.balance.amount));
+		return PointWallet.rehydrate(e.id, Money.of(e.balance.amount));
 	}
 
 	/** 저장 **/
@@ -71,5 +72,10 @@ public class WalletJpaAdapter implements WalletRepository {
 		h.paymentId = paymentId;
 		h.createdAt = LocalDateTime.now();
 		historyJpa.save(h);
+	}
+
+	@Override
+	public Optional<WalletEntity> findById(long userId) {
+		return walletJpa.findById(userId);
 	}
 }

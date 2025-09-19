@@ -15,7 +15,7 @@ import jakarta.persistence.Version;
 @Entity
 // unique 제약조건 추가로 중복된 요청 처리 방지
 @Table(name="seat_state",
-	uniqueConstraints = @UniqueConstraint(name="uk_show_seat", columnNames={"show_id","seat_no"}),
+	uniqueConstraints = @UniqueConstraint(name="uk_show_seat_state", columnNames={"show_id","seat_no"}),
 	indexes = {
 		@Index(name="idx_seat_status", columnList = "status"),
 		@Index(name="idx_seat_expires", columnList = "expires_at")

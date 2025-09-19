@@ -13,10 +13,10 @@ public class ShowSeatEntity {
 
 	@Id
 	@Column(name = "show_seat_id")
-	public Long showSeatId;
+	public Long id;
 
 	@Column(name = "show_id", nullable = false)
-	public String showId;
+	public Long showId;
 
 	@Column(name = "seat_no", nullable = false)
 	public Integer seatNo;
@@ -26,5 +26,5 @@ public class ShowSeatEntity {
 	public Long basePrice;
 	public Boolean isActive;
 
-	protected ShowSeatEntity() {}
+	public ShowSeatEntity() {}
 }
