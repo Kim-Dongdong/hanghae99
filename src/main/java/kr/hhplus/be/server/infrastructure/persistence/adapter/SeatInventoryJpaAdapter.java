@@ -58,8 +58,21 @@ public class SeatInventoryJpaAdapter implements SeatInventoryPort {
 	@Override
 	@Transactional
 	public boolean markConfirmed(Long scheduleId, Integer seatNo) {
-		LocalDateTime now = LocalDateTime.now();
-		return seatJpa.markConfirmed(scheduleId, seatNo, now) == 1;
+		return seatJpa.findByShowIdAndSeatNo(scheduleId, seatNo).map(e -> {
+			// 이미 확정이면 OK
+			if ("CONFIRMED".equals(e.status)) return true;
+
+			// HELD가 아니면 확정 불가
+			if (!"HELD".equals(e.status)) return false;
+
+			// 만료된 HELD는 확정 불가
+			if (e.expiresAt != null && e.expiresAt.isBefore(LocalDateTime.now())) return false;
+
+			e.status = "CONFIRMED";
+			e.expiresAt = null;
+			seatJpa.save(e);
+			return true;
+		}).orElse(false);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.port;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import kr.hhplus.be.server.domain.model.Reservation;
@@ -11,4 +12,6 @@ public interface ReservationPort {
 	Reservation save(Reservation reservation);
 
 	boolean existsByUserIdAndShowIdAndExpiresAtBefore(long userId, long showId, LocalDateTime now);
+
+	void markConfirmed(Long userId, Long showId, List<Integer> seatNos);
 }

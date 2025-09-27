@@ -63,37 +63,35 @@ public class ConfirmReservationUseCase {
 		return new Result("OK", wallet.getBalance());
 	}
 
-	@Transactional(readOnly = true)
-	public void confirm(long userId, long showId, List<Integer> seatNos) {
-		// 1) 만료 예약 존재 여부
-		boolean hasExpired = reservationPort.existsByUserIdAndShowIdAndExpiresAtBefore(
-			userId, showId, LocalDateTime.now()
-		);
-		if (hasExpired) {
-			throw new ReservationExpiredException(userId); // 추후 reservationId로 변경
-		}
+	@Transactional
+	public void confirm(Long userId, Long showId, List<Integer> seatNos) {
 
-		// 2) 좌석 가격 합계 계산
-		// showId가 String인 엔티티라면 다음처럼 변환해서 조회해야 함
-		List<ShowSeatEntity> seats = showSeatJpa.findAllByShowIdAndSeatNoIn(
-			showId, seatNos
-		);
-		long totalPrice = seats.stream().mapToLong(s -> s.basePrice).sum();
+		// 금액 계산
+		Money total = seatNos.stream()
+			.map(no -> seatInventory.seatPriceOf(showId, no))
+			.reduce(Money.zero(), Money::plus);
 
-		// 3) 지갑 잔액 확인
-		WalletEntity wallet = walletPort.findById(userId)
-			.orElseThrow(() -> new IllegalStateException("Wallet not found: " + userId));
+		// 지갑 비관락 조회
+		PointWallet wallet = walletPort.findByUserIdForUpdate(userId);
 
-		long balance = wallet.balance.amount;
-		if (balance < totalPrice) {
+		// 잔액 검증
+		if (wallet.getBalance().isLessThan(total)) {
 			throw new InsufficientBalanceException();
 		}
 
-		// 테스트는 "예외"만 본다. 성공 케이스 로직(차감/상태 변경/확정 저장)은 여기서 생략 가능.
-		// 실제 구현에서는 아래를 @Transactional로 처리:
-		// - wallet.balance 차감
-		// - seat_state SOLD로 변경
-		// - reservation status CONFIRMED 로 변경 등
+		// 좌석 확정 (HELD → CONFIRMED).
+		boolean ok = seatNos.stream()
+			.allMatch(no -> seatInventory.markConfirmed(showId, no));
+		if (!ok) {
+			throw new ReservationExpiredException(reservationPort.findByIdForUpdate(showId).get().getReservationId());
+		}
+
+		// 잔액 차감 & 저장
+		wallet = wallet.debit(total);
+		walletPort.save(wallet);
+
+		// 예약 포트(도메인 기록/이벤트 등)는 마지막에 호출
+		reservationPort.markConfirmed(userId, showId, seatNos);
 	}
 
 	public record Result(String status, Money walletBalance) {}

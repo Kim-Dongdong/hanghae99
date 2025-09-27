@@ -44,6 +44,11 @@ public class PointWallet {
 		this.balance = Money.of(this.balance.asLong() + delta);
 	}
 
+	// 금액 차감
+	public PointWallet debit(Money amount) {
+		return new PointWallet(userId, balance.minus(amount));
+	}
+
 	public Long getUserId() { return userId; }
 	public Money getBalance() { return balance; }
 

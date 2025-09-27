@@ -14,4 +14,8 @@ public interface SpringReservationJpa extends JpaRepository<ReservationEntity, L
 	Optional<ReservationEntity> findByIdForUpdate(@Param("id") Long id);
 
 	boolean existsByUserIdAndShowIdAndExpiresAtBefore(long userId, long showId, LocalDateTime now);
+
+	Optional<ReservationEntity> findTopByUserIdAndShowIdAndStatusOrderByCreatedAtDesc(
+		Long userId, Long showId, String status
+	);
 }

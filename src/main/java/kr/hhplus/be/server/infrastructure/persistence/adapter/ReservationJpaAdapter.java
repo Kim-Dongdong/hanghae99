@@ -1,25 +1,34 @@
 package kr.hhplus.be.server.infrastructure.persistence.adapter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.Reservation;
+import kr.hhplus.be.server.domain.model.exceptions.ReservationExpiredException;
 import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.infrastructure.persistence.entity.MoneyEmbeddable;
 import kr.hhplus.be.server.infrastructure.persistence.entity.ReservationEntity;
 import kr.hhplus.be.server.infrastructure.persistence.entity.ReservationSeatEntity;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringReservationJpa;
+import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringReservationSeatJpa;
 
 @Component
 public class ReservationJpaAdapter implements ReservationPort {
 	private final SpringReservationJpa jpa;
+	private final SpringReservationSeatJpa reservationSeatJpa;
 
-	public ReservationJpaAdapter(SpringReservationJpa jpa) { this.jpa = jpa; }
+	public ReservationJpaAdapter(SpringReservationJpa reservationJpa,
+		SpringReservationSeatJpa reservationSeatJpa) {
+		this.jpa = reservationJpa;
+		this.reservationSeatJpa = reservationSeatJpa;
+	}
 
 	/** reservationId로 특정 예약 조회 **/
 	@Override
@@ -79,5 +88,31 @@ public class ReservationJpaAdapter implements ReservationPort {
 	@Override
 	public boolean existsByUserIdAndShowIdAndExpiresAtBefore(long userId, long showId, LocalDateTime now) {
 		return jpa.existsByUserIdAndShowIdAndExpiresAtBefore(userId, showId, now);
+	}
+
+	@Override
+	public void markConfirmed(Long userId, Long showId, List<Integer> seatNos) {
+		ReservationEntity res = jpa
+			.findTopByUserIdAndShowIdAndStatusOrderByCreatedAtDesc(userId, showId, "PENDING")
+			.orElseThrow(() -> new ReservationExpiredException(1L));
+
+		// 2) 만료 검사
+		if (res.expiresAt != null && res.expiresAt.isBefore(LocalDateTime.now())) {
+			throw new ReservationExpiredException(res.id);
+		}
+
+		// 3) 좌석 일치 검증
+		List<ReservationSeatEntity> current = reservationSeatJpa.findByReservationId(res.id);
+		Set<Integer> have = new HashSet<>();
+		for (ReservationSeatEntity rs : current) have.add(rs.seatNo);
+
+		if (!have.containsAll(seatNos)) {
+			throw new IllegalStateException("Seat list mismatch. resId=" + res.id + ", have=" + have + ", want=" + seatNos);
+		}
+
+		// 4) 상태 변경
+		res.status = "CONFIRMED";
+		res.expiresAt = null;
+		jpa.save(res);
 	}
 }
