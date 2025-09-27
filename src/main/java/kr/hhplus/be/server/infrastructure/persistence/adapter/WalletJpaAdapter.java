@@ -44,11 +44,11 @@ public class WalletJpaAdapter implements WalletPort {
 	@Override
 	@Transactional
 	public void save(PointWallet wallet) {
-		WalletEntity e = walletJpa.findById(wallet.getUserId())
-			.orElseThrow(() -> new RuntimeException("Wallet not found"));
+		WalletEntity e = walletJpa.findByUserIdForUpdate(wallet.getUserId())
+			.orElseThrow(() -> new IllegalStateException("Wallet not found: " + wallet.getUserId()));
 		e.balance = new MoneyEmbeddable(wallet.getBalance().asLong());
 		e.updatedAt = LocalDateTime.now();
-		walletJpa.save(e);
+		walletJpa.save(e); // @Version 있어도 무방
 	}
 
 	/**  특정 요청이 이미 처리되었는지 확인,
@@ -58,6 +58,7 @@ public class WalletJpaAdapter implements WalletPort {
 	public boolean hasProcessed(Long userId, String requestId) {
 		return historyJpa.existsByUserIdAndRequestId(userId, requestId);
 	}
+
 
 	/** 포인트 거래 기록 저장 **/
 	// 기록 메서드
@@ -77,5 +78,11 @@ public class WalletJpaAdapter implements WalletPort {
 	@Override
 	public Optional<WalletEntity> findById(long userId) {
 		return walletJpa.findById(userId);
+	}
+
+	@Override
+	@Transactional
+	public void recordProcessed(Long userId, String requestId, Money amount, Money balanceAfter) {
+		recordHistory(userId, "RECHARGE", amount, balanceAfter, requestId, null);
 	}
 }

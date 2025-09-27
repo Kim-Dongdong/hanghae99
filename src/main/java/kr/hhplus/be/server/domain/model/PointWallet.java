@@ -37,6 +37,13 @@ public class PointWallet {
 		processedRequestIds.add(requestId);
 	}
 
+	public void recharge(Money amount) {
+		if (amount == null) throw new IllegalArgumentException("amount is null");
+		long delta = amount.asLong();
+		if (delta <= 0) throw new IllegalArgumentException("recharge amount must be positive");
+		this.balance = Money.of(this.balance.asLong() + delta);
+	}
+
 	public Long getUserId() { return userId; }
 	public Money getBalance() { return balance; }
 

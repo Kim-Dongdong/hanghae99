@@ -18,16 +18,20 @@ public class RechargePointUseCase {
 	/** 포인트 충전 요청 처리 **/
 	@Transactional
 	public Result handle(Long userId, Money amount, String requestId) {
-		// 이미 처리된 요청이라면, 중복 처리를 방지하기 위해 현재 지갑 잔액을 조회하여 바로 반환
+		// 1) 멱등성 체크
 		if (walletPort.hasProcessed(userId, requestId)) {
-			PointWallet wallet = walletPort.findByUserIdForUpdate(userId);
-			return new Result(wallet.getBalance());
+			PointWallet current = walletPort.findByUserIdForUpdate(userId);
+			return new Result(current.getBalance());
 		}
 
-		// 사용자 지갑 정보 조회 후 update
+		// 2) 지갑 잠금 조회 후 충전
 		PointWallet wallet = walletPort.findByUserIdForUpdate(userId);
-		wallet.charge(amount, requestId);
+		wallet.recharge(amount);
 		walletPort.save(wallet);
+
+		// 3) 딱 한번만 처리되도록 기록 남김 (중복 요청 차단 근거)
+		walletPort.recordProcessed(userId, requestId, amount, wallet.getBalance());
+
 		return new Result(wallet.getBalance());
 	}
 
