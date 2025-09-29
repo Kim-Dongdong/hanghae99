@@ -5,15 +5,10 @@ import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.*;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,21 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.ServerApplication;
 import kr.hhplus.be.server.application.usecase.ConfirmReservationUseCase;
-import kr.hhplus.be.server.application.usecase.HoldSeatUseCase;
-import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
 import kr.hhplus.be.server.domain.port.WalletPort;
 import kr.hhplus.be.server.infrastructure.persistence.entity.MoneyEmbeddable;
-import kr.hhplus.be.server.infrastructure.persistence.entity.ReservationEntity;
 import kr.hhplus.be.server.infrastructure.persistence.entity.SeatStateEntity;
-import kr.hhplus.be.server.infrastructure.persistence.entity.ShowEntity;
-import kr.hhplus.be.server.infrastructure.persistence.entity.ShowSeatEntity;
 import kr.hhplus.be.server.infrastructure.persistence.entity.WalletEntity;
-import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringReservationJpa;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringSeatStateJpa;
-import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowJpa;
-import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowSeatJpa;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringWalletJpa;
 
 /**
