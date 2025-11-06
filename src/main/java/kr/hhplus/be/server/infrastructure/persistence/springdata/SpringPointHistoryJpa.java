@@ -12,5 +12,9 @@ public interface SpringPointHistoryJpa extends JpaRepository<PointHistoryEntity,
 	long countByUserIdAndRequestId(Long userId, String requestId);
 
 	Optional<PointHistoryEntity> findTopByUserIdAndRequestIdOrderByCreatedAtDesc(Long userId, String requestId);
+
+	long countByUserId(Long userId);
+
+	long countByUserIdAndType(Long userId, String type);
 }
 

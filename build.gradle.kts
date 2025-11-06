@@ -44,6 +44,7 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.jboss.logging:jboss-logging:3.5.3.Final")
 
 	// H2 (인메모리)
 	testImplementation("com.h2database:h2")
