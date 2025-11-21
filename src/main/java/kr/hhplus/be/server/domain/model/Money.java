@@ -15,6 +15,10 @@ public class Money {
 	public boolean equalsAmount(Money other) { return this.amount == other.amount; }
 	public long asLong() { return amount; }
 
+	public Money multiply(int multiplier) {
+		return new Money(this.amount * multiplier);
+	}
+
 	@Override public String toString() { return "KRW " + amount; }
 	@Override public boolean equals(Object o) {
 		if (this == o) return true;
