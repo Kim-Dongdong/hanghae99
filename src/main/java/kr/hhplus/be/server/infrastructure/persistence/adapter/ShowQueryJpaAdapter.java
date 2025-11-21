@@ -14,12 +14,12 @@ import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowJpa;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowSeatJpa;
 
 @Component
-public class ConcertQueryJpaAdapter implements ConcertQueryPort {
+public class ShowQueryJpaAdapter implements ConcertQueryPort {
 	private final SpringShowJpa showJpa;
 	private final SpringShowSeatJpa showSeatJpa;
 	private final SpringSeatStateJpa seatStateJpa;
 
-	public ConcertQueryJpaAdapter(SpringShowJpa showJpa,
+	public ShowQueryJpaAdapter(SpringShowJpa showJpa,
 		SpringShowSeatJpa showSeatJpa,
 		SpringSeatStateJpa seatStateJpa) {
 		this.showJpa = showJpa;

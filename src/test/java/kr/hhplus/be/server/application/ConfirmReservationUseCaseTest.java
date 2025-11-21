@@ -22,7 +22,6 @@ import kr.hhplus.be.server.domain.model.exceptions.ReservationExpiredException;
 import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
 import kr.hhplus.be.server.domain.port.WalletPort;
-import kr.hhplus.be.server.infrastructure.persistence.entity.ShowSeatEntity;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowSeatJpa;
 
 /** 예약 확정 유스케이스 단위 테스트 **/

@@ -15,8 +15,6 @@ import kr.hhplus.be.server.domain.model.exceptions.SeatStateRaceException;
 import kr.hhplus.be.server.domain.port.ReservationPort;
 import kr.hhplus.be.server.domain.port.SeatInventoryPort;
 import kr.hhplus.be.server.domain.port.WalletPort;
-import kr.hhplus.be.server.infrastructure.persistence.entity.ShowSeatEntity;
-import kr.hhplus.be.server.infrastructure.persistence.entity.WalletEntity;
 import kr.hhplus.be.server.infrastructure.persistence.springdata.SpringShowSeatJpa;
 
 @Service
