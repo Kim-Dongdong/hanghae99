@@ -48,6 +48,9 @@ dependencies {
 
 	// H2 (인메모리)
 	testImplementation("com.h2database:h2")
+
+	// Redis
+	implementation("org.redisson:redisson-spring-boot-starter:3.24.3")
 }
 
 tasks.withType<Test> {
