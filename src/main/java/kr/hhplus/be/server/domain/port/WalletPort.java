@@ -13,4 +13,7 @@ public interface WalletPort {
 
 	Optional<WalletEntity> findById(long userId);
 	void recordProcessed(Long userId, String requestId, Money amount, Money balanceAfter);
+
+	// 분산락 사용시 일반 조회
+	PointWallet findByUserId(Long userId);
 }

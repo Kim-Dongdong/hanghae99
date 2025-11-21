@@ -59,7 +59,6 @@ public class WalletJpaAdapter implements WalletPort {
 		return historyJpa.existsByUserIdAndRequestId(userId, requestId);
 	}
 
-
 	/** 포인트 거래 기록 저장 **/
 	// 기록 메서드
 	@Transactional
@@ -84,5 +83,21 @@ public class WalletJpaAdapter implements WalletPort {
 	@Transactional
 	public void recordProcessed(Long userId, String requestId, Money amount, Money balanceAfter) {
 		recordHistory(userId, "RECHARGE", amount, balanceAfter, requestId, null);
+	}
+
+	/** 일반 조회 (분산락 사용시) **/
+	@Override
+	@Transactional(readOnly = true)
+	public PointWallet findByUserId(Long userId) {
+		WalletEntity e = walletJpa.findById(userId)
+			.orElseGet(() -> {
+				// 지갑이 없으면 새로 생성
+				WalletEntity ne = new WalletEntity();
+				ne.id = userId;
+				ne.balance = new MoneyEmbeddable(0);
+				ne.updatedAt = LocalDateTime.now();
+				return walletJpa.save(ne);
+			});
+		return PointWallet.rehydrate(e.id, Money.of(e.balance.amount));
 	}
 }
