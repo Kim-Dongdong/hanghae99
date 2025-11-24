@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import kr.hhplus.be.server.application.usecase.RechargePointUseCase;
+import kr.hhplus.be.server.config.manager.DistributedLockManager;
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.model.PointWallet;
 import kr.hhplus.be.server.domain.port.WalletPort;
@@ -19,12 +20,14 @@ import kr.hhplus.be.server.domain.port.WalletPort;
 public class RechargePointUseCaseTest {
 	@Mock
 	WalletPort walletPort;
+	@Mock
+	DistributedLockManager lockManager;
 
 	@Test
 	@DisplayName("충전 성공")
 	void recharge_success() {
 		// Mock 객체로 주입된 RechargePointUseCase 생성
-		RechargePointUseCase sut = new RechargePointUseCase(walletPort);
+		RechargePointUseCase sut = new RechargePointUseCase(walletPort, lockManager);
 
 		Long userId = 9L;
 		Money amount = Money.of(30000);
@@ -47,7 +50,7 @@ public class RechargePointUseCaseTest {
 	@Test
 	@DisplayName("동일한 요청 ID로 충전 요청이 다시 들어왔을 때, 중복 처리 방지")
 	void recharge_idempotent() {
-		RechargePointUseCase sut = new RechargePointUseCase(walletPort);
+		RechargePointUseCase sut = new RechargePointUseCase(walletPort, lockManager);
 		Long userId = 9L;
 		Money amount = Money.of(30000);
 		String reqId = "charge-001";

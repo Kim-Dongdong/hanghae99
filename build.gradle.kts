@@ -29,6 +29,12 @@ dependencyManagement {
 	}
 }
 
+configurations {
+	testImplementation {
+		exclude(group = "org.slf4j", module = "slf4j-simple")
+	}
+}
+
 dependencies {
     // Spring
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -45,9 +51,14 @@ dependencies {
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+	testImplementation("it.ozimov:embedded-redis:0.7.3")
 
 	// H2 (인메모리)
 	testImplementation("com.h2database:h2")
+
+	// Redis - Redisson 사용
+	implementation("org.redisson:redisson-spring-boot-starter:3.24.3")
+
 }
 
 tasks.withType<Test> {
