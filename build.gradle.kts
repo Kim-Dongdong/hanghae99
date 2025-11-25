@@ -40,6 +40,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
@@ -51,7 +52,6 @@ dependencies {
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("org.jboss.logging:jboss-logging:3.5.3.Final")
-	testImplementation("it.ozimov:embedded-redis:0.7.3")
 
 	// H2 (인메모리)
 	testImplementation("com.h2database:h2")
