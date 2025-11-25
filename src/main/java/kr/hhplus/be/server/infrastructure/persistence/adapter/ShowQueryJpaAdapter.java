@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import kr.hhplus.be.server.domain.model.Money;
 import kr.hhplus.be.server.domain.port.ConcertQueryPort;
@@ -87,5 +88,24 @@ public class ShowQueryJpaAdapter implements ConcertQueryPort {
 			s.title,
 			s.venue
 		);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public ShowEntity findById(Long showId) {
+		return showJpa.findById(showId)
+			.orElseThrow(() -> new IllegalArgumentException("Show not found: " + showId));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ShowEntity> findAllByIds(List<Long> showIds) {
+		return showJpa.findAllById(showIds);
+	}
+
+	@Override
+	@Transactional
+	public void updateStatus(Long showId, String status) {
+		showJpa.updateStatus(showId, status);
 	}
 }
