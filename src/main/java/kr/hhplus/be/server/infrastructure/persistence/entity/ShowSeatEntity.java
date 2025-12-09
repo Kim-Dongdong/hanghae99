@@ -2,6 +2,8 @@ package kr.hhplus.be.server.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -13,6 +15,7 @@ public class ShowSeatEntity {
 
 	@Id
 	@Column(name = "show_seat_id")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long id;
 
 	@Column(name = "show_id", nullable = false)

@@ -21,6 +21,11 @@ spring:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 # === 커스텀 설정 ===
 reservation:
   hold-ttl-seconds: 120
@@ -33,3 +38,5 @@ spring:
     url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
     username: application
     password: application
+
+
