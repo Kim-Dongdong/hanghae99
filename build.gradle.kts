@@ -42,6 +42,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
+	// kafka
+	implementation("org.springframework.kafka:spring-kafka:3.1.2")
+
     // DB
 	runtimeOnly("com.mysql:mysql-connector-j")
 
@@ -52,6 +55,8 @@ dependencies {
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	testImplementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+	testImplementation("org.springframework.kafka:spring-kafka-test:3.1.2")
+	testImplementation("org.testcontainers:kafka:1.19.3")
 
 	// H2 (인메모리)
 	testImplementation("com.h2database:h2")
