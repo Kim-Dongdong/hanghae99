@@ -2,18 +2,20 @@ spring:
   application:
     name: hhplus
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:local}
+
   datasource:
     name: HangHaePlusDataSource
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
-      maximum-pool-size: 3
+      maximum-pool-size: 20  # 부하 테스트용 증가
       connection-timeout: 10000
       max-lifetime: 60000
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3307/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
-    username: application
-    password: application
+    # Docker에서는 환경 변수로 오버라이드됨
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/hhplus?characterEncoding=UTF-8&serverTimezone=UTC}
+    username: ${SPRING_DATASOURCE_USERNAME:application}
+    password: ${SPRING_DATASOURCE_PASSWORD:application}
 
   jpa:
     open-in-view: false
@@ -27,15 +29,13 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
-  # Kafka 설정 직접 포함
+  # Kafka 설정
   kafka:
-    bootstrap-servers:
-      - localhost:9092
-      - localhost:9093
-      - localhost:9094
+    # Docker에서는 환경 변수로 오버라이드됨
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9093,localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -63,7 +63,7 @@ spring:
       concurrency: 3
       type: batch
 
-# === 커스텀 설정 ===
+# 커스텀 설정
 reservation:
   hold-ttl-seconds: 120
 
@@ -76,3 +76,13 @@ kafka:
       partitions: 3
       replication-factor: 2
       retention-ms: 604800000
+
+# Actuator 설정 (헬스 체크용)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: always

@@ -1,7 +1,62 @@
 version: '3.8'
 
 services:
-  # MySQL Database
+  # ===== Spring Boot Application =====
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: concert-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring Profile
+      - SPRING_PROFILES_ACTIVE=local
+
+      # JVM 옵션 (부하 테스트용)
+      - JAVA_OPTS=-Xmx2g -Xms2g -XX:+UseG1GC
+
+      # MySQL 연결 (컨테이너 내부에서는 service name 사용)
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=application
+      - SPRING_DATASOURCE_PASSWORD=application
+
+      # Redis 연결
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+
+      # Kafka 연결 (컨테이너 내부에서는 broker1, broker2, broker3 사용)
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=broker1:19092,broker2:19093,broker3:19094
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      broker1:
+        condition: service_healthy
+      broker2:
+        condition: service_healthy
+      broker3:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    # 부하 테스트용 리소스 제한
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+  # ===== MySQL Database =====
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -14,15 +69,20 @@ services:
       MYSQL_DATABASE: hhplus
     volumes:
       - ./data/mysql/:/var/lib/mysql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=500
+      --innodb_buffer_pool_size=1G
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis
+  # ===== Redis =====
   redis:
     image: redis:7.2-alpine
     container_name: redis
@@ -35,11 +95,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
     volumes:
       - ./data/redis:/data
 
-  # Zookeeper (Kafka 코디네이터)
+  # ===== Zookeeper (Kafka 코디네이터) =====
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     hostname: zookeeper
@@ -57,14 +117,14 @@ services:
       timeout: 5s
       retries: 5
 
-  # Kafka Broker 1
+  # ===== Kafka Broker 1 =====
   broker1:
     image: confluentinc/cp-kafka:7.6.0
     hostname: broker1
     container_name: broker1
     ports:
-      - "9092:9092"
-      - "19092:19092"
+      - "9092:9092"      # 외부 접속용
+      - "19092:19092"    # 내부 통신용
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -89,7 +149,7 @@ services:
       retries: 10
       start_period: 40s
 
-  # Kafka Broker 2
+  # ===== Kafka Broker 2 =====
   broker2:
     image: confluentinc/cp-kafka:7.6.0
     hostname: broker2
@@ -121,7 +181,7 @@ services:
       retries: 10
       start_period: 40s
 
-  # Kafka Broker 3
+  # ===== Kafka Broker 3 =====
   broker3:
     image: confluentinc/cp-kafka:7.6.0
     hostname: broker3
