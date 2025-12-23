@@ -1,0 +1,81 @@
+spring:
+  kafka:
+    # Kafka Bootstrap Servers (3개 브로커)
+    bootstrap-servers:
+      - localhost:9092
+      - localhost:9093
+      - localhost:9094
+
+    # Producer 설정
+    producer:
+      # 메시지 키/값 직렬화 방식
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      # Acknowledgment 설정 (all = 모든 ISR 브로커로부터 확인)
+      acks: all
+
+      # 재시도 설정
+      retries: 3
+
+      # 배치 크기 (bytes)
+      batch-size: 16384
+
+      # Linger 시간 (밀리초) - 배치를 모으기 위해 대기하는 시간
+      properties:
+        linger.ms: 10
+        # 압축 타입
+        compression.type: snappy
+        # Idempotent Producer 활성화 (중복 방지)
+        enable.idempotence: true
+        # 최대 in-flight 요청 수
+        max.in.flight.requests.per.connection: 5
+
+    # Consumer 설정
+    consumer:
+      # Consumer Group ID
+      group-id: concert-reservation-consumer-group
+
+      # 메시지 키/값 역직렬화 방식
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      # Auto Offset Commit 비활성화 (수동 커밋)
+      enable-auto-commit: false
+
+      # Offset 초기 위치 (earliest = 처음부터, latest = 최신부터)
+      auto-offset-reset: earliest
+
+      # 한 번에 가져올 레코드 수
+      max-poll-records: 100
+
+      # Consumer 설정들을 properties 아래로 통합
+      properties:
+        # JSON Deserializer 설정
+        spring.json.trusted.packages: "*"
+        spring.json.type.mapping: reservation-confirmed:kr.hhplus.be.server.infrastructure.kafka.event.ReservationConfirmedKafkaEvent
+        # Poll 타임아웃
+        max.poll.interval.ms: 300000
+
+    # Listener 설정
+    listener:
+      # Acknowledgment 모드 (MANUAL = 수동 커밋)
+      ack-mode: manual
+
+      # 동시성 (Consumer 스레드 수)
+      concurrency: 3
+
+      # 에러 핸들링
+      type: batch
+
+# Kafka 토픽 설정
+kafka:
+  topics:
+    reservation-confirmed: reservation-confirmed-topic
+
+  # 토픽 생성 설정
+  topic-config:
+    reservation-confirmed:
+      partitions: 3  # 파티션 수
+      replication-factor: 2  # 복제 팩터 (브로커 3대 중 2대에 복제)
+      retention-ms: 604800000  # 7일 보관 (밀리초)
